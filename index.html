@@ -810,6 +810,19 @@ font-size: 9px; line-height: 1.5;
 padding: 8px 12px;
 }
 
+/* ── DEMO BADGE ── */
+.demo-bar {
+display: none;
+align-items: center; justify-content: center; gap: 10px;
+background: linear-gradient(90deg, #8a6a1a, #c9a84c, #f0d080, #c9a84c, #8a6a1a);
+padding: 7px 16px;
+font-family: var(–mono);
+font-size: 9px; letter-spacing: 3px;
+color: #1a1a00; font-weight: 700;
+position: relative; z-index: 10;
+}
+.demo-bar.show { display: flex; }
+
 /* ── LOADING ── */
 .cloading {
 position: absolute; inset: 0;
@@ -953,6 +966,10 @@ color: #202124;
 <!-- INDICES STRIP -->
 
 <div class="indices-strip" id="indicesStrip"></div>
+<div class="demo-bar" id="demoBanner">
+  ⚡ DEMO MODE — Sample data only. Enter your API key to fetch live market data.
+  <button onclick="exitDemo()" style="background:rgba(0,0,0,0.2);border:1px solid rgba(0,0,0,0.3);color:#1a1a00;font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 10px;cursor:pointer;margin-left:8px;">✕ EXIT DEMO</button>
+</div>
 
 <!-- HERO -->
 
@@ -992,6 +1009,7 @@ color: #202124;
   <div class="setup-input">
     <input type="text" id="avKeyInput" placeholder="Paste your Alpha Vantage API key…" />
     <button class="tbtn" onclick="saveAvKey()">SAVE KEY</button>
+    <button class="tbtn" onclick="loadDemo()" style="border-color:#c9a84c;color:#c9a84c;margin-left:4px;">⚡ DEMO MODE</button>
   </div>
 </div>
 
@@ -1557,6 +1575,7 @@ function selectStock(idx) {
 //  FETCH + SCORE  (Alpha Vantage)
 // ══════════════════════════════════════════════
 async function fetchTarget(id) {
+  if (isDemoMode) { toast('Exit demo mode to fetch live data', 'w'); return; }
   const idx = watchlist.findIndex(c => c.id === id);
   if (idx < 0) return;
   const c = watchlist[idx];
@@ -1739,6 +1758,113 @@ async function fetchAll() {
 // ══════════════════════════════════════════════
 // ── MARKET INDICES (disabled — strip kept for future use) ──
 async function loadIndices() { /* indices removed */ }
+
+
+// ══════════════════════════════════════════════
+//  DEMO MODE
+// ══════════════════════════════════════════════
+const DEMO_DATA = [
+  {
+    id: 9000001, ticker:'AAPL', exch:'NASDAQ', name:'Apple Inc.', sector:'Technology',
+    signal:'BUY', score:78, fetched: new Date().toISOString(),
+    data:{ price:213.49, change:1.24, high52:237.23, low52:164.08, pe:33.2, eps:6.43,
+           mktCap:'3280000000000', divYield:0.0054, profitMg:0.264, revGrowth:0.051,
+           epsGrowth:0.107, analTarget:237.50, beta:1.24, roe:1.47 },
+    sparkline:[164,168,172,175,170,178,182,179,185,188,184,191,195,192,198,203,200,207,205,210,208,213,211,215,212,209,213,211,214,213],
+    cats:['Analyst upside +11%','Healthy P/E 33.2','Profit margin 26%'],
+    risks:['Revenue growth slowing +5% YoY'],
+    currentGrowth:'Trading at 213.49 (+1.24% today). Profit margin: 26.4%.',
+    potentialGrowth:'Analyst mean target 237.50 — implied upside 11.2%. Earnings trend: +10.7% YoY.',
+    expectedGrowth:'Revenue trend +5.1% YoY. 12–24 month outlook: positive based on current fundamentals.'
+  },
+  {
+    id: 9000002, ticker:'NPN', exch:'JSE', name:'Naspers Limited', sector:'Technology',
+    signal:'WATCH', score:54, fetched: new Date().toISOString(),
+    data:{ price:3284.00, change:-0.38, high52:3890.00, low52:2650.00, pe:18.4, eps:178.50,
+           mktCap:'136000000000', divYield:0.0, profitMg:0.12, revGrowth:0.082,
+           epsGrowth:0.043, analTarget:3650.00, beta:1.45, roe:0.18 },
+    sparkline:[2650,2710,2740,2780,2760,2820,2870,2850,2910,2960,2940,3010,3050,3020,3080,3120,3100,3160,3200,3180,3240,3260,3280,3250,3300,3270,3290,3310,3285,3284],
+    cats:['Analyst upside +11%','Revenue +8.2% YoY'],
+    risks:['Earnings growth slowing +4.3% YoY','High volatility (Beta 1.45)'],
+    currentGrowth:'Trading at 3284.00 (-0.38% today). Profit margin: 12.0%.',
+    potentialGrowth:'Analyst mean target 3650.00 — implied upside 11.1%. Earnings trend: +4.3% YoY.',
+    expectedGrowth:'Revenue trend +8.2% YoY. 12–24 month outlook: mixed based on current fundamentals.'
+  },
+  {
+    id: 9000003, ticker:'BHP', exch:'ASX', name:'BHP Group Limited', sector:'Mining & Resources',
+    signal:'BUY', score:71, fetched: new Date().toISOString(),
+    data:{ price:43.82, change:0.91, high52:49.60, low52:37.20, pe:11.8, eps:3.71,
+           mktCap:'221000000000', divYield:0.052, profitMg:0.218, revGrowth:0.034,
+           epsGrowth:0.089, analTarget:50.20, beta:0.82, roe:0.31 },
+    sparkline:[37.2,37.8,38.4,38.1,39.0,39.6,39.3,40.1,40.8,40.5,41.2,41.8,41.5,42.2,42.8,42.5,43.1,43.7,43.4,44.0,43.7,43.4,44.1,43.8,44.4,43.9,44.2,43.5,43.9,43.82],
+    cats:['Low P/E 11.8 — possible value','Dividend yield 5.2%','Analyst upside +14%'],
+    risks:[],
+    currentGrowth:'Trading at 43.82 (+0.91% today). Profit margin: 21.8%.',
+    potentialGrowth:'Analyst mean target 50.20 — implied upside 14.6%. Earnings trend: +8.9% YoY.',
+    expectedGrowth:'Revenue trend +3.4% YoY. 12–24 month outlook: positive based on current fundamentals.'
+  },
+  {
+    id: 9000004, ticker:'NVDA', exch:'NASDAQ', name:'NVIDIA Corporation', sector:'Technology',
+    signal:'WATCH', score:61, fetched: new Date().toISOString(),
+    data:{ price:121.40, change:-2.14, high52:153.13, low52:78.64, pe:38.6, eps:3.14,
+           mktCap:'2960000000000', divYield:0.00, profitMg:0.553, revGrowth:0.781,
+           epsGrowth:0.892, analTarget:175.00, beta:2.01, roe:1.23 },
+    sparkline:[78,82,88,95,103,98,110,118,114,122,119,128,135,131,139,143,138,145,141,148,144,138,130,125,128,122,119,124,121,121.4],
+    cats:['Revenue +78.1% YoY','Earnings +89.2% YoY','Analyst upside +44%'],
+    risks:['High volatility (Beta 2.0)','Elevated P/E 38.6'],
+    currentGrowth:'Trading at 121.40 (-2.14% today). Profit margin: 55.3%.',
+    potentialGrowth:'Analyst mean target 175.00 — implied upside 44.2%. Earnings trend: +89.2% YoY.',
+    expectedGrowth:'Revenue trend +78.1% YoY. 12–24 month outlook: mixed — strong growth but valuation elevated.'
+  },
+  {
+    id: 9000005, ticker:'SOL', exch:'JSE', name:'Sasol Limited', sector:'Energy',
+    signal:'AVOID', score:32, fetched: new Date().toISOString(),
+    data:{ price:118.50, change:-1.85, high52:198.40, low52:104.20, pe:5.2, eps:22.80,
+           mktCap:'71000000000', divYield:0.028, profitMg:-0.031, revGrowth:-0.124,
+           epsGrowth:-0.341, analTarget:142.00, beta:1.68, roe:-0.04 },
+    sparkline:[198,189,180,175,168,162,158,152,148,144,141,138,135,132,129,127,124,121,118,116,114,112,115,113,117,115,119,117,118,118.5],
+    cats:['Low P/E 5.2'],
+    risks:['Revenue declining -12.4% YoY','Earnings declining -34.1% YoY','Loss-making'],
+    currentGrowth:'Trading at 118.50 (-1.85% today). Profit margin: -3.1%.',
+    potentialGrowth:'Revenue declining -12.4% YoY — recovery timeline uncertain.',
+    expectedGrowth:'Revenue trend -12.4% YoY. 12–24 month outlook: cautious based on current fundamentals.'
+  },
+  {
+    id: 9000006, ticker:'GLD', exch:'NYSE', name:'SPDR Gold Shares ETF', sector:'ETF — Gold',
+    signal:'BUY', score:67, fetched: new Date().toISOString(),
+    data:{ price:302.14, change:0.54, high52:312.40, low52:188.50, pe:null, eps:null,
+           mktCap:'87000000000', divYield:0.0, profitMg:null, revGrowth:null,
+           epsGrowth:null, analTarget:null, beta:0.04, roe:null },
+    sparkline:[188,192,196,201,198,205,210,207,214,218,215,221,226,223,229,234,231,237,241,238,244,249,246,252,257,260,264,268,272,302],
+    cats:['Low volatility (Beta 0.04)','60% below 52-wk high'],
+    risks:[],
+    currentGrowth:'Trading at 302.14 (+0.54% today). Gold ETF tracking spot gold price.',
+    potentialGrowth:'Strong momentum — up significantly from 52-week low of 188.50.',
+    expectedGrowth:'Gold continues to benefit from macro uncertainty and central bank demand trends.'
+  }
+];
+
+let isDemoMode = false;
+let realWatchlist = [];
+
+function loadDemo() {
+  isDemoMode = true;
+  realWatchlist = [...watchlist];
+  watchlist = DEMO_DATA;
+  document.getElementById('avBanner').classList.add('hide');
+  document.getElementById('demoBanner').classList.add('show');
+  render();
+  toast('Demo mode active — showing sample data', 'ok');
+}
+
+function exitDemo() {
+  isDemoMode = false;
+  watchlist = realWatchlist;
+  document.getElementById('demoBanner').classList.remove('show');
+  if (!avKey) document.getElementById('avBanner').classList.remove('hide');
+  render();
+  toast('Demo mode exited', 'ok');
+}
 
 function setFilter(f, btn) {
   activeFilter = f;
